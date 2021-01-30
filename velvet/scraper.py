@@ -23,29 +23,16 @@ def all_pages(just_nums = False):
 
     return files
 
-
+# TODO: make base configurable
 def build_urls():
     base = 'http://www.velvetjobs.com/job-posting/fixed-income-distressed-research-analyst-vice-president-'
 
     bottom = 200000
     count = 100000
 
-    #and not in set
     already_scraped = all_pages(just_nums = True)
-    urls = [base+str(x) for x in range(bottom, bottom+count) if str(x) not in already_scraped]
-
-    
-
-    clean_urls = [] #urls
-
-    # #TODO: fix
-    # for url in urls:
-    #     is_in = False
-    #     for num in already_scraped:
-    #         if num == url.split('-')[-1]:
-    #             is_in = True
-    #     if not is_in:
-    #         clean_urls.append(url)
+    urls = [base+str(x) for x in range(bottom, bottom+count) 
+                if str(x) not in already_scraped]
 
     random.shuffle(urls)
 
@@ -69,6 +56,7 @@ def fetch_url(url):
       #'https': 'https://user-spa634357b:@r@chnid@gate.smartproxy.com:7000'
     }
 
+    # TODO: Break out proxy testing
     test_url = 'http://ip.smartproxy.com/json'
     li_url = 'https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search&trkf_C=1382'
 
@@ -79,6 +67,8 @@ def fetch_url(url):
 
     return response
 
+# TODO: Better error handling
+# probably better to use queue
 def run():
     with concurrent.futures.ThreadPoolExecutor(max_workers=6) as executor:
         urls = build_urls()
@@ -99,6 +89,7 @@ def run():
                     except:
                         pass
 
+# TODO: Make running amount amount configurable
 def run_one():
     urls = build_urls()
 
@@ -108,25 +99,3 @@ def run_one():
     with open(f'./pages/{page_number}.html', 'w+') as fh:
         fh.write(response.text)
 
-
-def parse_velvet():
-    paths = all_pages()
-    data = []
-
-    for path in paths:
-        with open('./pages/'+path, 'r') as fh:
-            soup = BeautifulSoup(fh, 'html.parser')
-        try:
-            title = soup.select('.job-show-title')[0].get_text()
-            location = soup.select('.job-show-additional-item')[0].get_text()
-            description = soup.select('.job-show-description')[0].get_text()
-
-            data.append([title, location, description])
-        except:
-            pass
-
-    df = pd.DataFrame(data, columns=['title','location','description'])
-
-    df.to_csv('job_postings.csv')
-
-run()
