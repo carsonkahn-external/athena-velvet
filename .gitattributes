@@ -1,1 +1,4 @@
 velvet/data/csv/jobs.csv filter=lfs diff=lfs merge=lfs -text
+velvet/data/csv/small_all_listings.csv filter=lfs diff=lfs merge=lfs -text
+velvet/data/csv/large_all_listings.csv filter=lfs diff=lfs merge=lfs -text
+velvet/data/csv/large_finance_only_postings.csv filter=lfs diff=lfs merge=lfs -text
