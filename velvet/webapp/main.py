@@ -1,0 +1,85 @@
+from typing import Optional
+
+from fastapi import FastAPI
+from fastapi.responses import HTMLResponse
+
+import gensim
+import pandas as pd
+
+app = FastAPI()
+doc2vec = gensim.models.doc2vec.Doc2Vec.load('./models/finace_doc2vec_40_epoch')
+df = pd.read_csv('./data/large_only_finance.csv')
+print(df.shape)
+
+# Breakout model logic to seperate file
+def doctag_to_doc(doctag: int):
+    return df.iloc[doctag] 
+
+def closest_post(query_string):
+    words = query_string.split()
+    
+    inferred_vector = doc2vec.infer_vector(words)
+    sims = doc2vec.docvecs.most_similar([inferred_vector], topn=2)
+    
+    payload = {}
+    for index, doc in enumerate(sims):
+        row = doctag_to_doc(sims[index][0])
+        
+        # Doing this to avoid having to write json parser for NumPy
+        payload[index] = {'title': None, 'description': None}
+        payload[index]['title'] = row['title']
+        payload[index]['description'] = row['description']
+        #payload[index] = row['title']
+        
+    
+    print(payload)
+    import json
+    return json.dumps(payload)
+
+
+@app.get("/")
+def read_root():
+    #Break this into /view/.html    
+    html_content = """
+    <html>
+        <head>
+            <title>Doc2Vec</title>
+        </head>
+        <body>
+            <h1>Insert description to get similar works</h1>
+            <textarea id='user_desc'></textarea>
+            <input type='button' value='Go!' onclick='load_sim()'\>
+            <div id='similar_postings'></div>
+            
+            <script>
+            
+function load_sim(){
+	let user_text = document.getElementById('user_desc').value
+	let similar_postings = document.getElementById('similar_postings')
+
+
+	function parse_return(data){
+		data = JSON.parse(data)
+	    for (var key in data){
+	        similar_postings.innerHTML += data[key]['title'] + '<br/>';
+	    }
+	}
+
+	fetch('/model?' + new URLSearchParams({
+	    	'query_string': user_text}))
+	    	.then(response => response.json())
+			.then((data) => parse_return(data))
+}
+            </script>
+        
+        </body>
+    </html>
+    """
+    return HTMLResponse(content=html_content, status_code=200)
+
+
+@app.get("/model")
+def get_similiar_posting(query_string: str):
+    return closest_post(query_string)
+
+
