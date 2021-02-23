@@ -45,6 +45,12 @@ def read_root():
         <head>
             <title>Doc2Vec</title>
         </head>
+        <style>
+            #user_desc {
+                width: 300px;
+                height: 100px;
+            }
+        </style>
         <body>
             <h1>Insert description to get similar works</h1>
             <textarea id='user_desc'></textarea>
@@ -61,7 +67,9 @@ function load_sim(){
 	function parse_return(data){
 		data = JSON.parse(data)
 	    for (var key in data){
-	        similar_postings.innerHTML += data[key]['title'] + '<br/>';
+	        similar_postings.innerHTML = ''
+            similar_postings.innerHTML += '<b>' + data[key]['title'] + '</b>' + '<br/>';
+            similar_postings.innerHTML += data[key]['description'] + '<br/>'
 	    }
 	}
 
