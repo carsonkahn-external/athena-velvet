@@ -43,18 +43,18 @@ def train_from_nothing():
 	model = build_model(tagged_docs)
 	model = train('../trained_models/finance_doc2vec', model, tagged_docs)
 
+	return model, tagged_docs
+
 
 def load_saved(): 
 	with open('../checkpoints/2021-03-02-12-44-59_tagged_docs_1000', 'rb') as fh:
 		tagged_docs = pickle.load(fh)
 
-	model = load_trained_model('../trained_models/2021-03-02-12-32-07_finance_doc2vec_40_epochs')
+	model = load_trained_model('../trained_models/2021-03-02-15-10-34_finance_doc2vec_40_epochs')
 
 	return model, tagged_docs
 
 
 if __name__ == '__main__':
 	model, tagged_docs = load_saved()
-	#print(model.get_latest_training_loss())
-	sample_model(model, tagged_docs)
 	

@@ -71,7 +71,7 @@ def tagged_docs_from_series(docs, save_path=None):
 	if save_path:
 		with open(timeStamped(save_path), 'wb') as fh:
 			pickle.dump(tagged_docs, fh)
-		
+
 
 	return tagged_docs
 
@@ -109,6 +109,9 @@ def sample_model(model, tagged_docs):
 	for label, index in [('Median', 5)]:
 		print(f'{label}: {tagged_docs[sims[index][0]]}')
 		#print(u'%s %s: «%s»\nlp' % (label, sims[index], ' '.join(train_corpus[sims[index][0]].words)))
+
+def predict_word(model, sentence, word_count):
+	return model.predict_output_word(sentence.split(), topn=word_count)
 
 
 def timeStamped(save_path, fmt='%Y-%m-%d-%H-%M-%S_{fname}'):
