@@ -1,3 +1,4 @@
+.*.sw*
 velvet/pages/*
 .DS_Store
 # Byte-compiled / optimized / DLL files

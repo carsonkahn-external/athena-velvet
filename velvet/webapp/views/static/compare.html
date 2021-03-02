@@ -1,0 +1,44 @@
+<html>
+    <head>
+        <title>Doc2Vec</title>
+    </head>
+
+    <style>
+        #user_desc {
+            width: 300px;
+            height: 100px;
+        }
+    </style>
+
+    <body>
+        <h1>Insert description to get similar works</h1>
+        <textarea id='user_desc'></textarea>
+        <input type='button' value='Go!' onclick='load_sim()'\>
+        <div id='similar_postings'></div>
+        
+        <script>
+            
+            function load_sim(){
+            	let user_text = document.getElementById('user_desc').value
+            	let similar_postings = document.getElementById('similar_postings')
+
+
+            	function parse_return(data){
+            		data = JSON.parse(data)
+            	    for (var key in data){
+            	        similar_postings.innerHTML = ''
+                        similar_postings.innerHTML += '<b>' + data[key]['title'] + '</b>' + '<br/>';
+                        similar_postings.innerHTML += data[key]['description'] + '<br/>'
+            	    }
+            	}
+
+        	fetch('/model?' + new URLSearchParams({
+        	    	'query_string': user_text}))
+        	    	.then(response => response.json())
+        			.then((data) => parse_return(data))
+            }
+    
+        </script>
+        
+    </body>
+</html>
