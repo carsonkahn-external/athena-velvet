@@ -1,12 +1,19 @@
 from typing import Optional
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
+
 
 import gensim
 import pandas as pd
 
 app = FastAPI()
+app.mount("/views/static", StaticFiles(directory="views/static"), name="static")
+
+templates = Jinja2Templates(directory="views")
+
 doc2vec = gensim.models.doc2vec.Doc2Vec.load('./models/finace_doc2vec_40_epoch')
 df = pd.read_csv('./data/large_only_finance.csv')
 print(df.shape)
@@ -35,6 +42,12 @@ def closest_post(query_string):
     print(payload)
     import json
     return json.dumps(payload)
+
+
+
+@app.get("/compare", response_class=HTMLResponse)
+async def read_item(request: Request):
+    return templates.TemplateResponse("static/compare.html", {"request": request})
 
 
 @app.get("/")
