@@ -25,7 +25,7 @@ def load_trained_model(model_path):
 #TODO:// Probably move to taking a column directly
 def lemmatize_column(df, save_path = None):
 	"""
-	Takes a pandas dataframe and 
+	Takes a pandas dataframe and returns Series of lemmatized strings.
 	"""
 
 	nlp = spacy.load('en_core_web_sm', disable=['ner',  'tok2vec', 'parser'])
@@ -54,7 +54,7 @@ def lemmatize(texts, nlp_pipeline):
 		return ""
 
 
-def tagged_docs_from_series(docs):
+def tagged_docs_from_series(docs, save_path=None):
 	"""
 		Takes a pandas series (e.g. a sigle column) and returns a 
 		list of tagged documents.
@@ -68,6 +68,11 @@ def tagged_docs_from_series(docs):
 	tagged_docs = [gensim.models.doc2vec.TaggedDocument(td, [idx]) \
 		for idx, td in enumerate(docs.tolist())]
 
+	if save_path:
+		with open(timeStamped(save_path), 'wb') as fh:
+			pickle.dump(tagged_docs, fh)
+		
+
 	return tagged_docs
 
 
@@ -79,7 +84,7 @@ def build_model(tagged_docs):
 
 
 def train(save_path, model, tagged_docs):
-	model.train(tagged_docs, total_examples=model.corpus_count, epochs=40)
+	model.train(tagged_docs, total_examples=model.corpus_count, epochs=model.epochs)
 
 	model.save(timeStamped(save_path)+f'_{40}_epochs')
 
