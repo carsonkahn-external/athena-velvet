@@ -5,27 +5,39 @@ import pickle
 import spacy
 import random
 
-
-nlp = spacy.load('en_core_web_sm', disable=['ner',  'tok2vec', 'parser'])
+from datetime import datetime
 
 
 # Stub for now, probably take care of pre-processing here (before NLP)
-def load_data(data_path)
+def load_data(data_path):
 	df = pd.read_csv(data_path)
 	return df
 
 
+#TODO:// Probably move to taking a column directly
 def lemmatize_column(df, save_path = None):
-	lemma_descriptions = df['description'].apply(lemmatize)
+	"""
+	Takes a pandas dataframe and 
+	"""
+
+	nlp = spacy.load('en_core_web_sm', disable=['ner',  'tok2vec', 'parser'])
+
+	lemma_descriptions = df['description'].apply(lemmatize, nlp_pipeline=nlp)
 
 	if save_path:
 		with open(save_path, 'wb') as fh:
 			pickle.dump(lemma_descriptions, fh)
 
+	return lemma_descriptions
 
-def lemmatize(texts):
+
+def lemmatize(texts, nlp_pipeline):
+	"""
+	Takes a string and processes through a nlp pipeline.
+	Returning a string of lemmas with stop words removed.
+	"""
 	try:
-		m = nlp(texts)
+		m = nlp_pipeline(texts)
 		lemmas = " ".join([token.lemma_ for token in m if not token.is_stop])
 		return lemmas
 	except Exception as e:
@@ -34,7 +46,7 @@ def lemmatize(texts):
 		return ""
 
 
-def tagged_docs_from_series():
+def tagged_docs_from_series(docs):
 	"""
 		Takes a pandas series (e.g. a sigle column) and returns a 
 		list of tagged documents.
@@ -43,20 +55,25 @@ def tagged_docs_from_series():
 
 		A tagged document has a unqiue integer id - useful for referencing later
 	"""
-	documents = [doc.split() for doc in lemma_descriptions.tolist()]
+	documents = [doc.split() for doc in docs.tolist()]
 
 	tagged_docs = [gensim.models.doc2vec.TaggedDocument(td, [idx]) \
-		for idx, td in enumerate(lemma_descriptions.tolist())]
+		for idx, td in enumerate(docs.tolist())]
 
 	return tagged_docs
 
 
-def build_model():
+def build_model(save_path):
 	doc2vec = gensim.models.doc2vec.Doc2Vec(vector_size=1000, min_count=10, epochs=20)
 	doc2vec.build_vocab(tagged_docs)
-	doc2vec.train(tagged_docs, total_examples=doc2vec.corpus_count, epochs=40)
 
-	doc2vec.save('models/finace_doc2vec_40_epoch')
+	return doc2vec
+
+
+def train(model):
+	model.train(tagged_docs, total_examples=doc2vec.corpus_count, epochs=40)
+
+	model.save('models/finace_doc2vec_40_epoch')
 
 
 def sample_model():
