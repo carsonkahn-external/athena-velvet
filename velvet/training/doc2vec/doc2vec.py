@@ -1,11 +1,13 @@
 import gensim
 import json
+import os
 import pandas as pd
 import pickle
 import spacy
 import random
 
 from datetime import datetime
+from pathlib import Path
 
 
 # Stub for now, probably take care of pre-processing here (before NLP)
@@ -25,7 +27,7 @@ def lemmatize_column(df, save_path = None):
 	lemma_descriptions = df['description'].apply(lemmatize, nlp_pipeline=nlp)
 
 	if save_path:
-		with open(save_path, 'wb') as fh:
+		with open(timeStamped(save_path), 'wb') as fh:
 			pickle.dump(lemma_descriptions, fh)
 
 	return lemma_descriptions
@@ -70,10 +72,10 @@ def build_model(save_path):
 	return doc2vec
 
 
-def train(model):
+def train(save_path, model):
 	model.train(tagged_docs, total_examples=doc2vec.corpus_count, epochs=40)
 
-	model.save('models/finace_doc2vec_40_epoch')
+	model.save('../trained_models/finace_doc2vec_40_epoch')
 
 
 def sample_model():
@@ -94,3 +96,14 @@ def sample_model():
 	for label, index in [('Median', 5)]:
 		print(f'{label}: {tagged_docs[sims[index][0]]}')
 		print(u'%s %s: «%s»\nlp' % (label, sims[index], ' '.join(train_corpus[sims[index][0]].words)))
+
+
+def timeStamped(save_path, fmt='%Y-%m-%d-%H-%M-%S_{fname}'):
+    """
+    Helper function to datestamp file names
+    """
+    save_path = Path(save_path)
+    fname = save_path.name
+    fname = datetime.now().strftime(fmt).format(fname=fname)
+
+    return os.path.join(save_path.parent, fname)
