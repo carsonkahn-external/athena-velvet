@@ -14,18 +14,20 @@ nlp = spacy.load('en_core_web_sm', disable=['ner',  'tok2vec', 'parser'])
 def lemmatize(texts):
     try:
         m = nlp(texts)
-        lemmas = " ".join([token.lemma_ for token in m if not token.is_stop])
+        lemmas = [token.lemma_ for token in m if not token.is_stop]
         return lemmas
     except Exception as e:
         print(texts)
         print(e)
         return ""
 
+
 def doctag_to_doc(doctag: int):
     return df.iloc[doctag] 
 
+
 def closest_post(query_string):
-    words = query_string.split()
+    words = lemmatize(query_string)#query_string.split()
     
     inferred_vector = doc2vec.infer_vector(words)
     sims = doc2vec.docvecs.most_similar([inferred_vector], topn=2)
