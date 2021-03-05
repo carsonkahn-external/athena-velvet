@@ -56,5 +56,5 @@ def load_saved():
 
 
 if __name__ == '__main__':
-	model, tagged_docs = load_saved()
+	train_from_nothing()
 	

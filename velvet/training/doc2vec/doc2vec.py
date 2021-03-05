@@ -110,6 +110,7 @@ def sample_model(model, tagged_docs):
 		print(f'{label}: {tagged_docs[sims[index][0]]}')
 		#print(u'%s %s: «%s»\nlp' % (label, sims[index], ' '.join(train_corpus[sims[index][0]].words)))
 
+
 def predict_word(model, sentence, word_count):
 	return model.predict_output_word(sentence.split(), topn=word_count)
 
