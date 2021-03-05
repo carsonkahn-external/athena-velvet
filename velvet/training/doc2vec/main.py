@@ -57,4 +57,4 @@ def load_saved():
 
 if __name__ == '__main__':
 	train_from_nothing()
-	
+        print("Finished")   
