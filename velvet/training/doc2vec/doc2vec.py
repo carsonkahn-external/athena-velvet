@@ -18,8 +18,14 @@ def load_data(data_path):
 	df = pd.read_csv(data_path)
 	return df
 
+
 def load_trained_model(model_path):
 	return gensim.models.doc2vec.Doc2Vec.load(model_path)
+
+
+def load_tagged_docs(docs_path):
+	with open(docs_path, 'rb') as fh:
+		return pickle.load(fh)
 
 
 #TODO:// Probably move to taking a column directly
@@ -29,7 +35,7 @@ def lemmatize_column(df, save_path = None):
 	"""
 
 	nlp = spacy.load('en_core_web_sm', disable=['ner',  'tok2vec', 'parser'])
-
+	
 	lemma_descriptions = df['description'].apply(lemmatize, nlp_pipeline=nlp)
 
 	if save_path:
@@ -76,8 +82,8 @@ def tagged_docs_from_series(docs, save_path=None):
 	return tagged_docs
 
 
-def build_model(tagged_docs):
-	doc2vec = gensim.models.doc2vec.Doc2Vec(vector_size=1000, min_count=10, epochs=20)
+def build_model(tagged_docs, model_params={'vector_size': 1000, 'min_count': 10, 'epochs': 20}):
+	doc2vec = gensim.models.doc2vec.Doc2Vec(**model_params)
 	doc2vec.build_vocab(tagged_docs)
 
 	return doc2vec
@@ -86,7 +92,7 @@ def build_model(tagged_docs):
 def train(save_path, model, tagged_docs):
 	model.train(tagged_docs, total_examples=model.corpus_count, epochs=model.epochs)
 
-	model.save(timeStamped(save_path)+f'_{40}_epochs')
+	model.save(timeStamped(save_path)+f'_{model.epochs}_epochs')
 
 	return model
 
@@ -112,8 +118,14 @@ def sample_model(model, tagged_docs):
 
 
 def predict_word(model, sentence, word_count):
-	return model.predict_output_word(sentence.split(), topn=word_count)
+	nlp = spacy.load('en_core_web_sm', disable=['ner',  'tok2vec', 'parser'])
+	sentence = lemmatize(sentence, nlp).split()
+	print(sentence)
+	return model.predict_output_word(sentence, topn=word_count)
 
+
+
+### Utils
 
 def timeStamped(save_path, fmt='%Y-%m-%d-%H-%M-%S_{fname}'):
     """
@@ -124,3 +136,5 @@ def timeStamped(save_path, fmt='%Y-%m-%d-%H-%M-%S_{fname}'):
     fname = datetime.now().strftime(fmt).format(fname=fname)
 
     return os.path.join(save_path.parent, fname)
+
+# TODO:// File management
