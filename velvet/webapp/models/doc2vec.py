@@ -150,10 +150,14 @@ def similar_document(model, tagged_docs, doc):
     doc = lemmatize(doc, nlp)
 
     doc_vec = model.infer_vector(doc)
-    sim_doc = model.dv.most_similar([doc_vec], topn=1)
-    index = sim_doc[0][0]
-    return " ".join(tagged_docs[index].words)
+    sim_docs = model.dv.most_similar([doc_vec], topn=3)
 
+    full_docs = []
+    for doc in sim_docs:
+    	index = doc[0]
+    	full_docs.append(tagged_docs[index].words)
+
+    return full_docs
 
 
 ### Utils
