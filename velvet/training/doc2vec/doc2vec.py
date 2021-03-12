@@ -67,21 +67,31 @@ def tagged_docs_from_series(docs, save_path=None):
 
 		Documents are in themselves a list of lemmas.
 
-		A tagged document has a unqiue integer id - useful for referencing later
+		A tagged document has a unqiue integer id - useful for referencing later.
+
+		We also save a corresponding TaggedDocument list that has the unalterted
+		text.
 	"""
 	nlp = spacy.load('en_core_web_sm', disable=['ner',  'tok2vec', 'parser'])
 
 	documents = [lemmatize(doc, nlp) for doc in docs.tolist()]
 
-	tagged_docs = [gensim.models.doc2vec.TaggedDocument(td, [idx]) \
+	# Perhaps move to one loop for insurance that tags line up
+	tagged_parsed_docs = [gensim.models.doc2vec.TaggedDocument(td, [idx]) \
 		for idx, td in enumerate(documents)]
+
+	tagged_full_docs = [gensim.models.doc2vec.TaggedDocument(td, [idx]) \
+		for idx, td in enumerate(docs)]
 
 	if save_path:
 		with open(timeStamped(save_path), 'wb') as fh:
-			pickle.dump(tagged_docs, fh)
+			pickle.dump(tagged_parsed_docs, fh)
+
+		with open(timeStamped(save_path+'_full_texts'), 'wb') as fh:
+			pickle.dump(tagged_full_docs, fh)
 
 
-	return tagged_docs
+	return tagged_parsed_docs
 
 
 def build_model(tagged_docs, model_params={'vector_size': 1000, 'min_count': 10, 'epochs': 20}):
