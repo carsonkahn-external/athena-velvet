@@ -1,5 +1,9 @@
 .*.sw*
-velvet/pages/*
+/velvet/pages/*
+/velvet/notebooks
+/velvet/data
+/velvet/sftp-config.json
+
 .DS_Store
 # Byte-compiled / optimized / DLL files
 __pycache__/
