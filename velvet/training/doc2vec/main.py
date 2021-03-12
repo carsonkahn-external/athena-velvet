@@ -34,15 +34,19 @@ def build_toy_set(data_path, count, save = False):
 	return descriptions
 
 
-def train_from_nothing():
+def train_from_nothing(data_path, row_limit=None):
 	"""
 	Build doc2vec from scratch
 	"""
-	lemmas = dv.build_toy_set('../../data/csv/large_finance_only_postings.csv', count=1000)
-	tagged_docs = dv.tagged_docs_from_series(lemmas, save_path='../checkpoints/large_finance_only_postings_tagged_docs.pickle')
+	documents = dv.load_data(data_path, row_limit)['description']
 
-	model = dv.build_model(tagged_docs)
-	model = dv.train('../trained_models/finance_doc2vec', model, tagged_docs)
+	# TODO:/ make two tagged docs, one that is full description
+	# so we can reference it later
+	tagged_docs = dv.tagged_docs_from_series(documents, 
+		save_path='../checkpoints/finance_tagged_docs.pickle')
+
+	# model = dv.build_model(tagged_docs)
+	# model = dv.train('../trained_models/finance_doc2vec', model, tagged_docs)
 
 	#return model, tagged_docs
 
@@ -66,8 +70,35 @@ def load_model_and_docs(load_path):
 
 
 if __name__ == '__main__':
-	model, tagged_docs = load_model_and_docs('../trained_models/2021-03-05-22-01-08_finance_doc2vec_20_epochs')
 
-	sentence = "Goldman Sachs is seeking a risk analysis"
-	predicted_word = dv.predict_word(model, sentence, 10)
-	print(predicted_word)
+	train_from_nothing(data_path = '../../data/csv/large_finance_only_postings.csv',
+		row_limit=None)
+
+
+	# tagged_docs = dv.load_tagged_docs('../checkpoints/2021-03-10-19-12-28_large_finance_only_postings_tagged_docs.pickle')
+	# model = dv.load_trained_model('../trained_models/5_test/2021-03-10-19-31-13_finance_doc2vec_5_epochs')
+
+	# #dv.sample_model(model, tagged_docs)
+
+	# sentence = "strong skills"
+	# predicted_word = dv.predict_word(model, sentence, 10)
+	# print(predicted_word)
+
+	# word_models = [model]
+	# import random
+
+	# def pick_random_word(model, threshold=10):
+	#     while True:
+	#         word = random.choice(model.wv.index_to_key)
+	#         if model.wv.get_vecattr(word, "count") > threshold:
+	#             return word
+
+	# target_word = pick_random_word(word_models[0])
+
+
+	
+	# for model in word_models:
+	#     print(f'target_word: {repr(target_word)} model: {model} similar words:')
+	#     for i, (word, sim) in enumerate(model.wv.most_similar(target_word, topn=10), 1):
+	#         print(f'    {i}. {sim:.2f} {repr(word)}')
+	#     print()
