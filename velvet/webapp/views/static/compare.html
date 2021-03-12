@@ -4,38 +4,102 @@
     </head>
 
     <style>
+        body{
+            text-align: center;
+        }
+        #container{
+            margin: 0 auto;
+            width: 800px;
+        }
+        #similar{
+
+        }
+        #similar input{
+            margin-top: 10px;
+        }
+        #similar #descriptions{
+            margin-top: 10px;
+            text-align: left;
+            width:100%;
+        }
+        #similar #descriptions .breaker{
+            margin: 10px;
+            font-size: 200%
+            width:100%;
+        }
         #user_desc {
             width: 300px;
             height: 100px;
         }
+        #missing_words{
+            text-align: left;
+            width:50%;
+            margin: 0 auto;
+            margin-top: 10px;
+        }
     </style>
 
     <body>
-        <h1>Insert description to get similar works</h1>
-        <textarea id='user_desc'></textarea>
-        <input type='button' value='Go!' onclick='load_sim()'\>
-        <div id='similar_postings'></div>
-        
+        <div id='container'>
+            <div id='similar'>
+                <h1>Find similar job postings</h1>
+                <textarea id='user_desc'></textarea>
+                <br>
+                <input type='button' value='Find similar descriptions' onclick='load_sim()'\>
+                <div id='descriptions'>
+                    
+                </div>
+            </div>
+
+            <div id='fill'>
+                <h1>Get missing words</h1>
+                <textarea id='sentence'></textarea>
+                <br>
+                <input type='button' value='Get missing words' onclick='fill()'\>
+                <div id='missing_words'>
+                    
+                </div>
+            </div>
+
+        </div>
         <script>
             
             function load_sim(){
             	let user_text = document.getElementById('user_desc').value
-            	let similar_postings = document.getElementById('similar_postings')
+            	let similar_postings = document.getElementById('descriptions')
 
 
             	function parse_return(data){
             		data = JSON.parse(data)
+                    similar_postings.innerHTML = ''
             	    for (var key in data){
-            	        similar_postings.innerHTML = ''
-                        similar_postings.innerHTML += '<b>' + data[key]['title'] + '</b>' + '<br/>';
-                        similar_postings.innerHTML += data[key]['description'] + '<br/>'
+                        similar_postings.innerHTML += data[key]
+                        similar_postings.innerHTML += '<div class= "breaker">********************</div>'
             	    }
             	}
 
-        	fetch('/model?' + new URLSearchParams({
-        	    	'query_string': user_text}))
-        	    	.then(response => response.json())
-        			.then((data) => parse_return(data))
+            	fetch('/get_similiar_posting?' + new URLSearchParams({
+            	    	'query_string': user_text}))
+            	    	.then(response => response.json())
+            			.then((data) => parse_return(data))
+            }
+
+            function fill(){
+                let sentence = document.getElementById('sentence').value
+                let missing_words = document.getElementById('missing_words')
+
+                function parse_return(data){
+                    data = JSON.parse(data)
+                    for (var key in data){
+                        missing_words.innerHTML += data[key]
+                        missing_words.innerHTML += '<br>'
+                    }
+                }
+
+                fetch('/get_missing_word?' + new URLSearchParams({
+                        'query_string': sentence}))
+                        .then(response => response.json())
+                        .then((data) => parse_return(data))
             }
     
         </script>
