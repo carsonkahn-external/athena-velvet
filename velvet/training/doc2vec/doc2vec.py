@@ -14,18 +14,12 @@ from pathlib import Path
 
 
 # Stub for now, probably take care of pre-processing here (before NLP)
-def load_data(data_path, row_limit=None):
-	df = pd.read_csv(data_path, nrows=row_limit)
+def load_data(data_path):
+	df = pd.read_csv(data_path)
 	return df
-
 
 def load_trained_model(model_path):
 	return gensim.models.doc2vec.Doc2Vec.load(model_path)
-
-
-def load_tagged_docs(docs_path):
-	with open(docs_path, 'rb') as fh:
-		return pickle.load(fh)
 
 
 #TODO:// Probably move to taking a column directly
@@ -35,7 +29,7 @@ def lemmatize_column(df, save_path = None):
 	"""
 
 	nlp = spacy.load('en_core_web_sm', disable=['ner',  'tok2vec', 'parser'])
-	
+
 	lemma_descriptions = df['description'].apply(lemmatize, nlp_pipeline=nlp)
 
 	if save_path:
@@ -45,17 +39,17 @@ def lemmatize_column(df, save_path = None):
 	return lemma_descriptions
 
 
-def lemmatize(text, nlp_pipeline):
+def lemmatize(texts, nlp_pipeline):
 	"""
 	Takes a string and processes through a nlp pipeline.
 	Returning a string of lemmas with stop words removed.
 	"""
 	try:
-		m = nlp_pipeline(text)
-		lemmas = [token.lemma_ for token in m if not token.is_stop]
+		m = nlp_pipeline(texts)
+		lemmas = " ".join([token.lemma_ for token in m if not token.is_stop])
 		return lemmas
 	except Exception as e:
-		print(text)
+		print(texts)
 		print(e)
 		return ""
 
@@ -67,50 +61,32 @@ def tagged_docs_from_series(docs, save_path=None):
 
 		Documents are in themselves a list of lemmas.
 
-		A tagged document has a unqiue integer id - useful for referencing later.
-
-		We also save a corresponding TaggedDocument list that has the unalterted
-		text.
+		A tagged document has a unqiue integer id - useful for referencing later
 	"""
-	nlp = spacy.load('en_core_web_sm', disable=['ner',  'tok2vec', 'parser'])
+	documents = [doc.split() for doc in docs.tolist()]
 
-	documents = [lemmatize(doc, nlp) for doc in docs.tolist()]
-
-	# Perhaps move to one loop for insurance that tags line up
-	tagged_parsed_docs = [gensim.models.doc2vec.TaggedDocument(td, [idx]) \
-		for idx, td in enumerate(documents)]
-
-	tagged_full_docs = [gensim.models.doc2vec.TaggedDocument(td, [idx]) \
-		for idx, td in enumerate(docs)]
+	tagged_docs = [gensim.models.doc2vec.TaggedDocument(td, [idx]) \
+		for idx, td in enumerate(docs.tolist())]
 
 	if save_path:
 		with open(timeStamped(save_path), 'wb') as fh:
-			pickle.dump(tagged_parsed_docs, fh)
+			pickle.dump(tagged_docs, fh)
+		
 
-		with open(timeStamped(save_path+'_full_texts'), 'wb') as fh:
-			pickle.dump(tagged_full_docs, fh)
-
-
-	return tagged_parsed_docs
+	return tagged_docs
 
 
-def build_model(tagged_docs, model_params={'vector_size': 1000, 'min_count': 10, 'epochs': 20}):
-	doc2vec = gensim.models.doc2vec.Doc2Vec(**model_params)
+def build_model(tagged_docs):
+	doc2vec = gensim.models.doc2vec.Doc2Vec(vector_size=1000, min_count=10, epochs=20)
 	doc2vec.build_vocab(tagged_docs)
 
 	return doc2vec
 
 
 def train(save_path, model, tagged_docs):
-	"""
-	Some notes:
-		dm is analogous to Word2Vec CBOW - i.e. NN is trained on predicting
-		center context word. Other wise, SG is used - i.e. the whole document is
-		used to predict a sample word
-	"""
 	model.train(tagged_docs, total_examples=model.corpus_count, epochs=model.epochs)
 
-	model.save(timeStamped(save_path)+f'_{model.epochs}_epochs')
+	model.save(timeStamped(save_path)+f'_{40}_epochs')
 
 	return model
 
@@ -123,40 +99,17 @@ def sample_model(model, tagged_docs):
 
 	doc_id = random.randint(0, len(tagged_docs) - 1)
 
-	words = tagged_docs[doc_id].words
-	#print(words)
-
+	words = list(tagged_docs[doc_id].words)
 	inferred_vector = model.infer_vector(words)
 
-	potential = model.dv.most_similar([inferred_vector], topn=10)
-	
-	sims = []
-	for doc in potential:
-		if doc[1] < .9:
-			sims.append(doc)
+	sims = model.docvecs.most_similar([inferred_vector], topn=10)
 
-		if len(sims) > 3:
-			break
-
-	print(f'sims: {sims}')
 	# Compare and print the most/median/least similar documents from the train corpus
-	print('Test Document ({}): «{}»\n'.format(doc_id, ' '.join(words)))
-	for doc in sims:
-		index = doc[0]
-		print(f'DOCUMENT {index}: \n {" ".join(tagged_docs[index].words)} \n \n *********************************************')
+	print('Test Document ({}): «{}»\n'.format(doc_id, ''.join(words)))
+	for label, index in [('Median', 5)]:
+		print(f'{label}: {tagged_docs[sims[index][0]]}')
 		#print(u'%s %s: «%s»\nlp' % (label, sims[index], ' '.join(train_corpus[sims[index][0]].words)))
 
-
-def predict_word(model, sentence, word_count):
-	nlp = spacy.load('en_core_web_sm', disable=['ner',  'tok2vec', 'parser'])
-	sentence = lemmatize(sentence, nlp)
-	print(sentence)
-
-	return model.predict_output_word(sentence, topn=word_count)
-
-
-
-### Utils
 
 def timeStamped(save_path, fmt='%Y-%m-%d-%H-%M-%S_{fname}'):
     """
@@ -167,5 +120,3 @@ def timeStamped(save_path, fmt='%Y-%m-%d-%H-%M-%S_{fname}'):
     fname = datetime.now().strftime(fmt).format(fname=fname)
 
     return os.path.join(save_path.parent, fname)
-
-# TODO:// File management
