@@ -2,4 +2,3 @@
 *.pickle filter=lfs diff=lfs merge=lfs -text
 *.npy filter=lfs diff=lfs merge=lfs -text
 training/trained_models/ filter=lfs diff=lfs merge=lfs -text
-webapp/models/data/ filter=lfs diff=lfs merge=lfs -text
