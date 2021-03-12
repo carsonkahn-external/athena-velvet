@@ -31,6 +31,12 @@
             width: 300px;
             height: 100px;
         }
+        #missing_words{
+            text-align: left;
+            width:50%;
+            margin: 0 auto;
+            margin-top: 10px;
+        }
     </style>
 
     <body>
@@ -44,6 +50,17 @@
                     
                 </div>
             </div>
+
+            <div id='fill'>
+                <h1>Get missing words</h1>
+                <textarea id='sentence'></textarea>
+                <br>
+                <input type='button' value='Get missing words' onclick='fill()'\>
+                <div id='missing_words'>
+                    
+                </div>
+            </div>
+
         </div>
         <script>
             
@@ -54,7 +71,6 @@
 
             	function parse_return(data){
             		data = JSON.parse(data)
-                    console.log(data)
                     similar_postings.innerHTML = ''
             	    for (var key in data){
                         similar_postings.innerHTML += data[key]
@@ -62,10 +78,28 @@
             	    }
             	}
 
-        	fetch('/get_similiar_posting?' + new URLSearchParams({
-        	    	'query_string': user_text}))
-        	    	.then(response => response.json())
-        			.then((data) => parse_return(data))
+            	fetch('/get_similiar_posting?' + new URLSearchParams({
+            	    	'query_string': user_text}))
+            	    	.then(response => response.json())
+            			.then((data) => parse_return(data))
+            }
+
+            function fill(){
+                let sentence = document.getElementById('sentence').value
+                let missing_words = document.getElementById('missing_words')
+
+                function parse_return(data){
+                    data = JSON.parse(data)
+                    for (var key in data){
+                        missing_words.innerHTML += data[key]
+                        missing_words.innerHTML += '<br>'
+                    }
+                }
+
+                fetch('/get_missing_word?' + new URLSearchParams({
+                        'query_string': sentence}))
+                        .then(response => response.json())
+                        .then((data) => parse_return(data))
             }
     
         </script>

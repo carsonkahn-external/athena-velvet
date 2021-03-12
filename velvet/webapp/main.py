@@ -30,5 +30,7 @@ def get_similiar_posting(query_string: str):
 
 @app.get("/get_missing_word")
 def get_missing_word(query_string: str):
-	sim = doc2vec.similar_document(model, tagged_docs, query_string)
-	return  json.dumps(sim)
+	words = doc2vec.predict_word(model, query_string, 5)
+	words = [[t[0], t[1].item()] for t in words]
+	print(words)
+	return json.dumps(words)

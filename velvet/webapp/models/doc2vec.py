@@ -55,7 +55,7 @@ def lemmatize(text, nlp_pipeline):
 		lemmas = [token.lemma_ for token in m if not token.is_stop]
 		return lemmas
 	except Exception as e:
-		print(texts)
+		print(text)
 		print(e)
 		return ""
 
