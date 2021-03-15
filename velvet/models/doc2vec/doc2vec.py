@@ -163,7 +163,7 @@ class Doc2Vec:
 		
 		#predict_output_word predicts the central word, so we need
 		#to reformat our sentence to match this
-		index = words.index("?")
+		index = words.index("{{?}}")
 		
 		window_size = 5
 		left_window = []
@@ -179,7 +179,7 @@ class Doc2Vec:
 
 		#I wrote the above to test different padding schemes
 		#Those can be experimented here, but I've found that 
-		#if there's not enough context, (i.e. ? at end of single sentence)
+		#if there's not enough context, (i.e. {{?}} at end of single sentence)
 		#it doesn't make a big difference.
 
 		centered_sentence = left_window + right_window
