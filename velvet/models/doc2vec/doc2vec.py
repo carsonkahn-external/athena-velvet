@@ -151,7 +151,7 @@ class Doc2Vec:
 				{self.tagged_docs[index].words} \n \n *********************************************')
 
 
-	def predict_word(self, sentence, word_count=5):
+	def predict_word(self, sentence, window_size=4, word_count=5):
 		"""Takes a sentence with a missword and returns the model's
 		best guess as to which word it is.
 
@@ -163,18 +163,19 @@ class Doc2Vec:
 		
 		#predict_output_word predicts the central word, so we need
 		#to reformat our sentence to match this
-		index = words.index("{{?}}")
+		print(words)
+		index = words.index("?")
 		
-		window_size = 5
 		left_window = []
 		right_window = []
 		#Iterater through string, get up to window_size words on each side
+		#Marker {{?}} is spit into 5 sepereate characters, hence the 2 buffer
 		for i, word in enumerate(words):
 			distance = index - i
-			if abs(distance) < window_size:
-				if distance > 0:
+			if abs(distance) < window_size + 2:
+				if distance > 2:
 					left_window.append(word)
-				elif distance < 0:
+				elif distance < -2:
 					right_window.append(word)
 
 		#I wrote the above to test different padding schemes
@@ -182,7 +183,10 @@ class Doc2Vec:
 		#if there's not enough context, (i.e. {{?}} at end of single sentence)
 		#it doesn't make a big difference.
 
-		centered_sentence = left_window + right_window
+		#Center sentence
+		length = min(len(left_window), len(right_window))
+		centered_sentence = left_window[:length] + right_window[:length]
+
 		return self.model.predict_output_word(centered_sentence, topn=word_count)
 
 

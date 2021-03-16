@@ -13,7 +13,7 @@
         #similar{
 
         }
-        #similar input{
+        input{
             margin-top: 10px;
         }
         #similar #descriptions{
@@ -33,8 +33,10 @@
         #missing_words{
             text-align: left;
             width:50%;
-            margin: 0 auto;
             margin-top: 10px;
+        }
+        #window_size{
+            width:10%;
         }
     </style>
 
@@ -53,6 +55,8 @@
             <div id='fill'>
                 <h1>Get missing words</h1>
                 <textarea id='sentence'></textarea>
+                <br>
+                <textarea id='window_size'  placeholder="Window Size"></textarea>
                 <br>
                 <input type='button' value='Get missing words' onclick='fill()'\>
                 <div id='missing_words'>
@@ -85,18 +89,27 @@
 
             function fill(){
                 let sentence = document.getElementById('sentence').value
+                let window_size = document.getElementById('window_size').value
                 let missing_words = document.getElementById('missing_words')
 
                 function parse_return(data){
+                    missing_words.innerHTML = ''
+                    missing_words.innerHTML += '<br>Small Window Size:<br>'
                     data = JSON.parse(data)
                     for (var key in data){
                         missing_words.innerHTML += data[key]
                         missing_words.innerHTML += '<br>'
+
+                        
+                        if (key == 4){
+                            missing_words.innerHTML += '<br>Large Window Size:<br>'
+                        }
                     }
                 }
 
                 fetch('/get_missing_word?' + new URLSearchParams({
-                        'query_string': sentence}))
+                        'query_string': sentence,
+                        'window_size': window_size}))
                         .then(response => response.json())
                         .then((data) => parse_return(data))
             }
